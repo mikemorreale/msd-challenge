@@ -10,7 +10,7 @@ This script performs recommendation by raw popularity of items.
 
 print("load the triplets and compute song counts")
 
-with open('kaggle_visible_evaluation_triplets.txt', 'r') as f:
+with open('../data/kaggle_visible_evaluation_triplets.txt', 'r') as f:
     song_to_count = dict() 
     for line in f:
         _, song, _ = line.strip().split('\t') 
@@ -22,7 +22,6 @@ with open('kaggle_visible_evaluation_triplets.txt', 'r') as f:
         pass
     pass
 
-
 print("sort by popularity")
 
 songs_ordered = sorted( song_to_count.keys(), 
@@ -32,7 +31,7 @@ songs_ordered = sorted( song_to_count.keys(),
 
 print("load the user histories")
 
-with open('kaggle_visible_evaluation_triplets.txt', 'r') as f:
+with open('../data/kaggle_visible_evaluation_triplets.txt', 'r') as f:
     user_to_songs = dict() 
     for line in f:
         user, song, _ = line.strip().split('\t') 
@@ -46,20 +45,20 @@ with open('kaggle_visible_evaluation_triplets.txt', 'r') as f:
 
 print("load the user ordering")
 
-with open('kaggle_users.txt', 'r') as f:
+with open('../data/kaggle_users.txt', 'r') as f:
     canonical_users = map(lambda line: line.strip(), f.readlines()) 
     pass
 
 
 print("load the song ordering")
 
-with open('kaggle_songs.txt', 'r') as f:
+with open('../data/kaggle_songs.txt', 'r') as f:
     song_to_index = dict(map(lambda line: line.strip().split(' '), f.readlines())) 
     pass
 
 
 print("generate the prediction file")
-with open('submission_getting_started.txt', 'w') as f:
+with open('../results/submission_getting_started.txt', 'w') as f:
     for user in canonical_users:
         songs_to_recommend  = [] 
 
