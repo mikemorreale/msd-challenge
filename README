@@ -18,5 +18,14 @@ Team Fedora
      overview of the open source solution:
      
      step 1: simplify the song,user and triplets file with integers representing songs and users.
+     step 2: create a sparce matrix mat[n][n] where mat[i][j] is the number of times the songs i and j are heard by the user
+     together forming the co-listening matrix
+     step 3: based on this co-listening matrix basically gives information of the form  “people who listened to X 
+     also listened to Y”. This also takes into account the popularity of the individual song
+     step 4: Each column in the mat[][] forms a vector mat[i][:] which is the ith song's co-listening vector
+     step 5: Add this vector for each song the user listened to and sum it
+     step 6: sort this in the descending order and it gives how similar all the songs are similar to the user's 
+     listening history
+     
      
     
