@@ -4,7 +4,7 @@ Team Fedora
 - There are two existing solutions available :  
           1. the naive approach which recommends the 500 most popular songs to everyone
           2. The open source solution which uses collaborative filtering and thereby recommends those songs which most 
-              users listen to. This approach also takes ino account the number of times the songs in question are played
+              users listen to. This approach also takes into account the number of times the songs in question are played
 
 -Our solution:
 
