@@ -4,11 +4,19 @@ Team Fedora
 - There are two existing solutions available :  
           1. the naive approach which recommends the 500 most popular songs to everyone
           2. The open source solution which uses collaborative filtering and thereby recommends those songs which most 
-              users listen to. This approach also takes into account the number of times the songs in question are played
+              users listen to. This approach also takes ino account the number of times the songs in question are played
 
 -Our solution:
 
   a)Iteration 1:
-    - we want to make the evaluation triple file more efficient and so replace the user and song strings to integer 
-      values.
+    	- we want to make the evaluation triple file more efficient and so replace the user and song strings to integer 
+      	values.
+      - To start with the code base we can start with coding our own version of the open source solution
+      - This will be modified along the way in case we spot any regions where it is possible to improve or optimize the 
+      open source solution
+     
+     overview of the open source solution:
+     
+     step 1: simplify the song,user and triplets file with integers representing songs and users.
+     
     
