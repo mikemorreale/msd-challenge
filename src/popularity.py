@@ -1,3 +1,5 @@
+from scipy import sparse
+
 with open("../data/kaggle_users.txt", "r") as file:
     users = {}
     index = 0
@@ -15,7 +17,10 @@ with open("../data/kaggle_songs.txt", "r") as file:
 with open("../data/taste_profile_song_to_tracks.txt", "r") as file:
     tracks = {}
     for line in file:
-        song_id, track = line.strip().split(" ")
+        temp = line.strip().split("\t")
+        song_id = temp[0]
+        track = []
+        track = temp[1:]
         tracks[songs[song_id]] = track
 
 with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
@@ -26,6 +31,12 @@ with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
             play_count[users[user_id]][songs[song_id]] = int(count)
         else:
             play_count[users[user_id]] = {songs[song_id] : int(count)}
+
+colisten = sparse.lil_matrix((len(songs), len(songs)))
+for user in play_count:
+    for song1 in play_count[user].keys():
+        for song2 in play_count[user].keys():
+            colisten[song1 - 1, song2 - 1] += 1
 
 #print("load the triplets and compute song counts")
 #
