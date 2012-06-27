@@ -79,9 +79,11 @@ with open("../results/solution.txt", "w") as file:
         for recommendation_index in solution:
             if recommendation_index in song_list:
                 solution.remove(recommendation_index)
-        if len(recommendation_indices) < 500:
+        if len(solution) < 500:
             for song in sorted_diagonal:
-                if song not in solution:
+                if len(solution) == 500:
+                    break
+                elif song not in solution:
                     solution.append(song)
         else:
             solution = solution[:500]
