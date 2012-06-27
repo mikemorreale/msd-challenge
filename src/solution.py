@@ -1,6 +1,7 @@
+from numpy import argsort, lexsort, zeros
 from scipy import sparse
-import numpy
 
+# store data from the text files into dictionaries
 print("storing data in dictionaries")
 with open("../data/kaggle_users.txt", "r") as file:
     users = {}
@@ -34,44 +35,59 @@ with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
         else:
             play_count[users[user_id]] = {songs[song_id] : int(count)}
 
+# create colisten matrix and store it in a compressed row format
 print("creating colisten matrix")
 colisten = sparse.lil_matrix((len(songs), len(songs)))
 for user in play_count:
     for song1 in play_count[user]:
         for song2 in play_count[user]:
             colisten[song1 - 1, song2 - 1] += 1
+colisten = colisten.tocsr()
+
+# store the diagonal elements of the colisten matrix into an array and sort it
+colisten_diagonal = colisten.diagonal().astype("int32")
+sorted_diagonal = argsort(-colisten_diagonal[:500])
 
 print("outputting solution")
-with open("../results/solution.txt", "w") as out:
-        songs_list = []
-        counts_list = []
-    
-        colisten_diagonal = colisten.diagonal()
-        sorted_diagonal = numpy.argsort(-colisten_diagonal)[:500]
-    
-        for user in play_count:
-            for user_songs, counts in play_count[user].items():            
-                songs_list.append(user_songs)
-                counts_list.append(counts)
+with open("../results/solution.txt", "w") as file:
+    for user in play_count:
+        # create lists for songs heard by the user and their play counts
+        song_list = []
+        count_list = []
+        song_list = [user_song for user_song in play_count[user].keys()]
+        count_list = [count for count in play_count[user].values()]
         
-            counts_array = numpy.array(counts_list)[numpy.newaxis, :]
-            user_songs_matrix = colisten[numpy.array(songs_list) - 1,:]
-            sort_reference =  counts_array * user_songs_matrix
-            
-            nonzero_sort_reference = sort_reference.nonzero()[1]
-            srt = numpy.lexsort((-colisten_diagonal[nonzero_sort_reference], -sort_reference[0,nonzero_sort_reference]))
-            sorted_songs = nonzero_sort_reference[srt]
-            
-            guess = []
-            for song in sorted_songs:
-                if song + 1 in songs_list: continue
-                guess.append(str(song + 1))
-                if len(guess) == 500: break
-                else:
-                    for song in sorted_diagonal:
-                        if song + 1 in songs_list or song + 1 in sorted_songs: continue
-                        guess.append(str(song + 1))
-                        if len(guess) == 500: break
-                        out.write(' '.join(guess) + '\n')
-                        
+        # create a list of rows as arrays from the colisten matrix for every song the user heard
+        song_rows = [colisten[song - 1, :].toarray()[0] for song in song_list]
+        
+        # create weighted scores by multiplying the row corresponding to a song by the play count of that song
+        count_list_index = 0
+        weighted_row_sums = zeros(colisten.shape[0]).astype("int32")
+        for row in song_rows:
+            weighted_scores = row * count_list[count_list_index]
+            weighted_row_sums += weighted_scores
+            count_list_index += 1
+        weighted_row_sums_list = list(weighted_row_sums)  
+        nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
+        
+        # reverse sort by the weighted row sums followed by the colisten diagonal elements
+        recommended_songs = lexsort((-colisten_diagonal[nonzero_weighted_row_sums], -weighted_row_sums[nonzero_weighted_row_sums])) # could add [nonzero_weighted_row_sums] for nonzero values
+        recommendation_indices = nonzero_weighted_row_sums[recommended_songs]
+        
+        # recommend more songs if there are not enough already recommended
+        solution = list(recommendation_indices + 1)
+        for recommendation_index in solution:
+            if recommendation_index in song_list:
+                solution.remove(recommendation_index)
+        if len(recommendation_indices) < 500:
+            for song in sorted_diagonal:
+                if song not in solution:
+                    solution.append(song)
+        else:
+            solution = solution[:500]
+        
+        # write solution to results file
+        solution_string = " ".join(map(str, solution))
+        file.write(solution_string + "\n")
+
 print("finished")
