@@ -57,8 +57,7 @@ for song1 in colisten:
 sorted_diagonal = argsort(-colisten_diagonal[:500])
 
 # output the solution and write it to a file
-write_counter = 1
-buffer = ""
+
 print("outputting solution")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:        
@@ -93,8 +92,6 @@ with open("../results/solution.txt", "w") as file:
         solution_string = " ".join(map(str, guess)) + "\n"
         
         # write solution to results file
-        if write_counter % 1 == 0:
-            file.write(solution_string)
-        write_counter += 1
+        file.write(solution_string)
 
 print("finished")
