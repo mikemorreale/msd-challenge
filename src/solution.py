@@ -1,12 +1,10 @@
 from numpy import argsort, lexsort, zeros
-from scipy import sparse
-import io
 
 # store data from the text files into dictionaries
 print("storing data in dictionaries")
 with open("../data/kaggle_users.txt", "r") as file:
     users = {}
-    index = 0
+    index = 1
     for line in file:
         user_id = line.strip()
         users[user_id] = index
@@ -16,7 +14,7 @@ with open("../data/kaggle_songs.txt", "r") as file:
     songs = {}
     for line in file:
         song_id, index = line.strip().split(" ")
-        songs[song_id] = int(index)
+        songs[song_id] = int(index) - 1
 
 with open("../data/taste_profile_song_to_tracks.txt", "r") as file:
     tracks = {}
@@ -27,7 +25,7 @@ with open("../data/taste_profile_song_to_tracks.txt", "r") as file:
         track = temp[1:]
         tracks[songs[song_id]] = track
 
-with open("../data/triplets_subset.txt", "r") as file:
+with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
     play_count = {}
     for line in file:
         user_id, song_id, count = line.strip().split("\t")
@@ -36,70 +34,67 @@ with open("../data/triplets_subset.txt", "r") as file:
         else:
             play_count[users[user_id]] = {songs[song_id] : int(count)}
 
-# create colisten matrix
+# create colisten dictionary
 print("creating colisten matrix")
-colisten = sparse.lil_matrix((len(songs), len(songs)))
+colisten = {}
 for user in play_count:
     for song1 in play_count[user]:
         for song2 in play_count[user]:
-            colisten[song1 - 1, song2 - 1] += 1
-
-# convert colisten matrix to compressed sparse row format
-print("converting colisten matrix to csr format")
-colisten = colisten.tocsr()
+            if song1 in colisten and song2 in colisten[song1]:
+                colisten[song1][song2] += 1
+            elif song1 not in colisten:
+                colisten[song1] = {song2 : 1}
+            elif song2 not in colisten[song1]:
+                colisten[song1][song2] = 1
 
 # store the diagonal elements of the colisten matrix into an array and sort it
-print("creating array storing colisten diagonal")
-colisten_diagonal = colisten.diagonal().astype("int32")
+print("creating array storing colisten diagonal and sorted colisten diagonal")
+colisten_diagonal = zeros(len(songs)).astype("int32")
+for song1 in colisten:
+    for song2, _ in colisten[song1].items():
+        if song1 == song2:
+            colisten_diagonal[song1] += colisten[song1][song2]
 sorted_diagonal = argsort(-colisten_diagonal[:500])
 
 # output the solution and write it to a file
+write_counter = 1
+buffer = ""
 print("outputting solution")
 with open("../results/solution.txt", "w") as file:
-    for user in play_count:
-        file_str = io.StringIO()
-        
-        # create lists for songs heard by the user and their play counts
+    for user in play_count:        
+        # create list for songs heard by the user and dictionary for play counts
         song_list = [user_song for user_song in play_count[user].keys()]
-        count_list = [count for count in play_count[user].values()]
+        count_dict = {song:counts for song,counts in play_count[user].items()}
         
-        # create a list of rows as arrays from the colisten matrix for every song the user heard
-        song_rows = [colisten[song - 1, :].toarray()[0] for song in song_list]
-        
-        # create weighted scores by multiplying the row corresponding to a song by the play count of that song
-        weighted_row_sums = zeros(colisten.shape[0]).astype("int32")
-        index = 0
-        for row in song_rows:
-            weighted_row_sums += row * count_list[index]
-            index += 1
+        weighted_row_sums = zeros(len(songs)).astype("int32")
+        for song in song_list:
+            for row_song, colisten_val in colisten[song].items():
+                weighted_row_sums[row_song] += colisten_val * count_dict[song]
         nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
         
         # reverse sort by the weighted row sums followed by the colisten diagonal elements
-        recommended_songs = lexsort((-colisten_diagonal[nonzero_weighted_row_sums], -weighted_row_sums[nonzero_weighted_row_sums])) # could add [nonzero_weighted_row_sums] for nonzero values
-        recommendation_indices = nonzero_weighted_row_sums[recommended_songs] + 1
+        recommended_songs = lexsort((-colisten_diagonal[nonzero_weighted_row_sums], -weighted_row_sums[nonzero_weighted_row_sums]))
+        recommendation_indices = nonzero_weighted_row_sums[recommended_songs]
         
         # recommend more songs if there are not enough already recommended
-        solution = list(recommendation_indices)
-        for recommendation_index in solution:
-            if recommendation_index in song_list:
-                solution.remove(recommendation_index)
-        solution_string = " ".join(map(str, solution))
+        guess_index = 0
+        guess = 500 * [0]
+        for recommendation_index in recommendation_indices:
+            if guess_index < 500 and recommendation_index not in song_list:
+                guess[guess_index] += recommendation_index + 1
+                guess_index += 1
         
-        count = len(solution)
-        if count < 500:
-            file_str.write(solution_string)
-            for song in sorted_diagonal:
-                if count == 500:
-                    file_str.write("\n")
-                    break
-                elif song not in solution:
-                    file_str.write(" " + str(song))
-                    count += 1
-        else:
-            solution = solution[:500]
-            file_str.write(" ".join(map(str, solution)) + "\n")
+        for song in sorted_diagonal:
+            if guess_index < 500 and song not in guess:
+                guess[guess_index] = song + 1
+                guess_index += 1
+            elif guess_index == 500:
+                break
+        solution_string = " ".join(map(str, guess)) + "\n"
         
         # write solution to results file
-        file.write(file_str.getvalue())
+        if write_counter % 1 == 0:
+            file.write(solution_string)
+        write_counter += 1
 
 print("finished")
