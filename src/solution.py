@@ -1,5 +1,5 @@
 from numpy import argsort, lexsort, zeros
-from multiprocessing import Process
+#from multiprocessing import Process
 
 def create_user_colisten(range_start, range_end, outfile, play_count):
     user_colisten = {}
@@ -58,10 +58,13 @@ def main():
     # Populating the user colisten dictionary from the files created by the threads
     print("population user colisten")
     user_colisten = {}
-    with open("../results/user_colisten.txt" , "r") as file:
+    with open("../data/user_colisten.txt" , "r") as file:
         for line in file:
+            temp_common_songs = []
             common_songs = []
-            common_songs = line.strip().split(" ")
+            temp_common_songs = line.strip().split(" ")
+            for song in temp_common_songs:
+                common_songs.append(int(song))
             user_colisten[common_songs[0]] = common_songs[1:]
             
     # create colisten dictionary
@@ -93,17 +96,17 @@ def main():
             
             # create list for songs heard by the user and dictionary for play counts
             song_list = [user_song for user_song in play_count[user].keys()]
-            count_dict = {song:counts for song,counts in play_count[user].items()}
+#            count_dict = {song:counts for song,counts in play_count[user].items()}
             
             weighted_row_sums = zeros(len(songs)).astype("int32")
             for song in song_list:
-                if user in user_colisten:
+                if user in user_colisten.keys():
                     if song in user_colisten[user]:
                         for row_song, song_colisten_val in song_colisten[song].items():
-                            weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user]) * count_dict[song]
+                            weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
                 else:
                     for row_song, song_colisten_val in song_colisten[song].items():
-                        weighted_row_sums[row_song] += song_colisten_val * count_dict[song]
+                        weighted_row_sums[row_song] += song_colisten_val
                     
             nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
             
