@@ -15,7 +15,7 @@ def create_user_colisten(range_start, range_end, outfile, play_count):
                         user_colisten[user1] = temp_colisten
                         max_song_match = song_list_length
             if user1 in user_colisten:
-                file.write(str(user1) +" "+ str(user_colisten[user1]) + "\n")
+                file.write(str(user1) +":"+ str(user_colisten[user1]) + "\n")
 
 def main():
     # store data from the text files into dictionaries
@@ -54,30 +54,30 @@ def main():
        
     # Create user colisten dictionary using threads
     print("thread function creating user colisten dictionary")
-    p1 = Process(target=create_user_colisten, args= (1, 27500, "../results/user_colisten1.txt", play_count))
-    p2 = Process(target=create_user_colisten, args= (27501, 55000, "../results/user_colisten2.txt", play_count))
-    p3 = Process(target=create_user_colisten, args= (55001, 82500, "../results/user_colisten3.txt", play_count))
-    p4 = Process(target=create_user_colisten, args= (82501, 110001, "../results/user_colisten4.txt", play_count))
-    
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
+#    p1 = Process(target=create_user_colisten, args= (1, 27500, "../results/user_colisten1.txt", play_count))
+#    p2 = Process(target=create_user_colisten, args= (27501, 55000, "../results/user_colisten2.txt", play_count))
+#    p3 = Process(target=create_user_colisten, args= (55001, 82500, "../results/user_colisten3.txt", play_count))
+#    p4 = Process(target=create_user_colisten, args= (82501, 110001, "../results/user_colisten4.txt", play_count))
+#    
+#    p1.start()
+#    p2.start()
+#    p3.start()
+#    p4.start()
+#    
+#    p1.join()
+#    p2.join()
+#    p3.join()
+#    p4.join()
     
     # Populating the user colisten dictionary from the files created by the threads
     print("population user colisten")
     user_colisten = {}
-    for i in range(1, 4):
-        with open("../results/user_colisten"+i+".txt" , "r") as file:
-            for line in file:
-                user, common_songs = line.strip().split(" ")
-                user_colisten[user] = common_songs
-            
+    with open("../results/user_colisten.txt" , "r") as file:
+        for line in file:
+            common_songs = []
+            common_songs = line.strip().split(" ")
+            user_colisten[common_songs[0]] = common_songs[1:]
+        
     
     # create colisten dictionary
     print("creating songs colisten dictionary")
@@ -110,13 +110,18 @@ def main():
             
             # create list for songs heard by the user and dictionary for play counts
             song_list = [user_song for user_song in play_count[user].keys()]
-            # count_dict = {song:counts for song,counts in play_count[user].items()}
+            count_dict = {song:counts for song,counts in play_count[user].items()}
             
             weighted_row_sums = zeros(len(songs)).astype("int32")
             for song in song_list:
-                if song in user_colisten[user]:
+                if user in user_colisten:
+                    if song in user_colisten[user]:
+                        for row_song, song_colisten_val in song_colisten[song].items():
+                            weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user]) * count_dict[song]
+                else:
                     for row_song, song_colisten_val in song_colisten[song].items():
-                        weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user]) # * count_dict[song]
+                        weighted_row_sums[row_song] += song_colisten_val * count_dict[song]
+                    
             nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
             
             # reverse sort by the weighted row sums followed by the colisten diagonal elements
