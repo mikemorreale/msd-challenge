@@ -80,15 +80,15 @@ with open("../results/solution.txt", "w") as file:
 # count_dict = {song:counts for song,counts in play_count[user].items()}
         
         weighted_row_sums = zeros(len(songs)).astype("int32")
-        for song in song_list:
-            if user in user_colisten.keys():
-                if song in user_colisten[user]:
-                    for row_song, song_colisten_val in song_colisten[song].items():
-                        weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
-            else:
+        if user in user_colisten.keys():
+            for song in user_colisten[user]:
+                for row_song, song_colisten_val in song_colisten[song].items():
+                    weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
+        else:
+            for song in song_list:
                 for row_song, song_colisten_val in song_colisten[song].items():
                     weighted_row_sums[row_song] += song_colisten_val
-               
+
         if user in user_colisten.keys():
             for song in set(user_colisten[user]) - set(song_list):
                  for row_song, song_colisten_val in song_colisten[song].items():
