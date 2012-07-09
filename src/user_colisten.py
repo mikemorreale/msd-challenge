@@ -1,4 +1,3 @@
-from numpy import argsort, lexsort, zeros
 from multiprocessing import Process
 
 def create_user_colisten(range_start, range_end, outfile, play_count):

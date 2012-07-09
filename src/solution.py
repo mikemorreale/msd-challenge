@@ -1,5 +1,4 @@
 from numpy import argsort, lexsort, zeros
-from multiprocessing import Process
 
 # store data from the text files into dictionaries
 print("storing data in dictionaries")
@@ -38,15 +37,14 @@ with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
 # Populating the user colisten dictionary from the files created by the threads
 print("population user colisten")
 user_colisten = {}
-for i in range(1, 4):
-    with open("../results/user_colisten"+str(i)+".txt" , "r") as file:
-        for line in file:
-            temp_common_songs = []
-            common_songs = []
-            temp_common_songs = line.strip().split(" ")
-        for song in temp_common_songs:
-            common_songs.append(int(song))
-            user_colisten[common_songs[0]] = common_songs[1:]
+with open("../data/user_colisten.txt" , "r") as file:
+    for line in file:
+        temp_common_songs = []
+        common_songs = []
+        temp_common_songs = line.strip().split(" ")
+    for song in temp_common_songs:
+        common_songs.append(int(song))
+        user_colisten[common_songs[0]] = common_songs[1:]
     
 # create colisten dictionary
 print("creating songs colisten dictionary")
