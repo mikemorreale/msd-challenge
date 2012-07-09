@@ -74,25 +74,24 @@ for song1 in song_colisten:
 print("outputting solution")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:        
-        
         # create list for songs heard by the user and dictionary for play counts
         song_list = [user_song for user_song in play_count[user].keys()]
 # count_dict = {song:counts for song,counts in play_count[user].items()}
         
         weighted_row_sums = zeros(len(songs)).astype("int32")
-        if user in user_colisten.keys():
-            for song in user_colisten[user]:
-                for row_song, song_colisten_val in song_colisten[song].items():
-                    weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
-        else:
-            for song in song_list:
+        for song in song_list:
+            if user in user_colisten.keys():
+                if song in user_colisten[user]:
+                    for row_song, song_colisten_val in song_colisten[song].items():
+                        weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
+            else:
                 for row_song, song_colisten_val in song_colisten[song].items():
                     weighted_row_sums[row_song] += song_colisten_val
-
+               
         if user in user_colisten.keys():
             for song in set(user_colisten[user]) - set(song_list):
-                 for row_song, song_colisten_val in song_colisten[song].items():
-                    weighted_row_sums[row_songs] += song_colisten_val * len(user_colisten[user])
+                for row_song, song_colisten_val in song_colisten[song].items():
+                    weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
 
         nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
         
