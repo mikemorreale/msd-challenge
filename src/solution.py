@@ -2,13 +2,16 @@ from numpy import argsort, lexsort, zeros
 
 # store data from the text files into dictionaries
 print("storing data in dictionaries")
-with open("../data/kaggle_users.txt", "r") as file:
+with open("../data/train_triplets.txt", "r") as file:
     users = {}
-    index = 1
+    index = 0
+    prev_user = ""
     for line in file:
-        user_id = line.strip()
-        users[user_id] = index
-        index += 1
+        user_id, value1, value2 = line.strip().split("\t")
+        if prev_user != user_id:
+            prev_user = user_id
+            index += 1
+            users[user_id] = index
 
 with open("../data/kaggle_songs.txt", "r") as file:
     songs = {}
@@ -25,7 +28,8 @@ with open("../data/taste_profile_song_to_tracks.txt", "r") as file:
         track = temp[1:]
         tracks[songs[song_id]] = track
 
-with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
+print("making play-count")
+with open("../data/train_triplets.txt", "r") as file:
     play_count = {}
     for line in file:
         user_id, song_id, count = line.strip().split("\t")
@@ -35,22 +39,22 @@ with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
             play_count[users[user_id]] = {songs[song_id] : int(count)}
 
 # Populating the user colisten dictionary from the files created by the threads
-print("population user colisten")
-user_colisten = {}
-with open("../data/user_colisten.txt" , "r") as file:
-    for line in file:
-        temp_common_songs = []
-        common_songs = []
-        temp_common_songs = line.strip().split(" ")
-    for song in temp_common_songs:
-        common_songs.append(int(song))
-        user_colisten[common_songs[0]] = common_songs[1:]
-    
+#print("population user colisten")
+#user_colisten = {}
+#with open("../data/user_colisten.txt" , "r") as file:
+#    for line in file:
+#        temp_common_songs = []
+#        common_songs = []
+#        temp_common_songs = line.strip().split(" ")
+#    for song in temp_common_songs:
+#        common_songs.append(int(song))
+#        user_colisten[common_songs[0]] = common_songs[1:]
+   
 # create colisten dictionary
 print("creating songs colisten dictionary")
-song_colisten = {}
 for user in play_count:
     for song1 in play_count[user]:
+        song_colisten = {}
         for song2 in play_count[user]:
             if song1 in song_colisten and song2 in song_colisten[song1]:
                 song_colisten[song1][song2] += 1
@@ -58,7 +62,9 @@ for user in play_count:
                 song_colisten[song1] = {song2 : 1}
             elif song2 not in song_colisten[song1]:
                 song_colisten[song1][song2] = 1
-
+    with open("../results/"+song1+".txt", "rw") as file:
+        file.write(song_colisten);
+                
 # store the diagonal elements of the colisten matrix into an array and sort it
 print("creating array storing colisten diagonal and sorted colisten diagonal")
 song_colisten_diagonal = zeros(len(songs)).astype("int32")
@@ -78,18 +84,18 @@ with open("../results/solution.txt", "w") as file:
         
         weighted_row_sums = zeros(len(songs)).astype("int32")
         for song in song_list:
-            if user in user_colisten.keys():
-                if song in user_colisten[user]:
-                    for row_song, song_colisten_val in song_colisten[song].items():
-                        weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
-            else:
-                for row_song, song_colisten_val in song_colisten[song].items():
-                    weighted_row_sums[row_song] += song_colisten_val
+#            if user in user_colisten.keys():
+#                if song in user_colisten[user]:
+            for row_song, song_colisten_val in song_colisten[song].items():
+                weighted_row_sums[row_song] += song_colisten_val #* len(user_colisten[user])
+#            else:
+#                for row_song, song_colisten_val in song_colisten[song].items():
+#                    weighted_row_sums[row_song] += song_colisten_val
                
-        if user in user_colisten.keys():
-            for song in set(user_colisten[user]) - set(song_list):
-                for row_song, song_colisten_val in song_colisten[song].items():
-                    weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
+#        if user in user_colisten.keys():
+#            for song in set(user_colisten[user]) - set(song_list):
+#                for row_song, song_colisten_val in song_colisten[song].items():
+#                    weighted_row_sums[row_song] += song_colisten_val * len(user_colisten[user])
 
         nonzero_weighted_row_sums = weighted_row_sums.nonzero()[0]
         
