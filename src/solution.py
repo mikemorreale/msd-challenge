@@ -29,26 +29,31 @@ with open("../data/taste_profile_song_to_tracks.txt", "r") as file:
         tracks[songs[song_id]] = track
 
 print("making play-count")
+play_count = {}
+index = 0
+prev_user = ""
 with open("../data/train_triplets.txt", "r") as file:
-    play_count = {}
     for line in file:
         user_id, song_id, count = line.strip().split("\t")
-        if users[user_id] in play_count:
-            play_count[users[user_id]][songs[song_id]] = int(count)
+        if prev_user != user_id:
+            prev_user = user_id
+            index += 1
+        if index in play_count:
+            play_count[index][songs[song_id]] = int(count)
         else:
-            play_count[users[user_id]] = {songs[song_id] : int(count)}
+            play_count[index] = {songs[song_id] : int(count)}
 
 # Populating the user colisten dictionary from the files created by the threads
-#print("population user colisten")
-#user_colisten = {}
-#with open("../data/user_colisten.txt" , "r") as file:
-#    for line in file:
-#        temp_common_songs = []
-#        common_songs = []
-#        temp_common_songs = line.strip().split(" ")
-#    for song in temp_common_songs:
-#        common_songs.append(int(song))
-#        user_colisten[common_songs[0]] = common_songs[1:]
+print("population user colisten")
+user_colisten = {}
+with open("../data/user_colisten.txt" , "r") as file:
+    for line in file:
+        temp_common_songs = []
+        common_songs = []
+        temp_common_songs = line.strip().split(" ")
+    for song in temp_common_songs:
+        common_songs.append(int(song))
+        user_colisten[common_songs[0]] = common_songs[1:]  
    
 # create colisten dictionary
 print("creating songs colisten dictionary")
@@ -64,7 +69,7 @@ for user in play_count:
                 song_colisten[song1][song2] = 1
     with open("../results/"+song1+".txt", "rw") as file:
         file.write(song_colisten);
-                
+
 # store the diagonal elements of the colisten matrix into an array and sort it
 print("creating array storing colisten diagonal and sorted colisten diagonal")
 song_colisten_diagonal = zeros(len(songs)).astype("int32")
