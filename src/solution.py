@@ -98,7 +98,6 @@ with open("../results/solution.txt", "w") as out_file:
                 for i in range(500):
                     if sorted_diagonal[i] + 1 not in songs_to_recommend:
                         out_file.write(str(sorted_diagonal[i] + 1) + " ")
-                out_file.write("\n")
                 break
             song_seed = max_colisten(song_colisten[song_seed], song_list, songs_to_recommend)
             songs_to_recommend.append(song_seed)
