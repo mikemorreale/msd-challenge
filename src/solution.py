@@ -1,3 +1,5 @@
+import copy
+
 print("storing data in dictionaries")
 with open("../data/kaggle_users.txt", "r") as file:
     users = {}
@@ -23,17 +25,6 @@ with open("../data/kaggle_visible_evaluation_triplets.txt", "r") as file:
         else:
             play_count[users[user_id]] = {songs[song_id] : int(count)}
 
-print("creating user_colisten")
-user_colisten = {}
-with open("../data/user_colisten.txt" , "r") as file:
-    for line in file:
-        temp_common_songs = []
-        common_songs = []
-        temp_common_songs = line.strip().split(" ")
-    for song in temp_common_songs:
-        common_songs.append(int(song))
-        user_colisten[common_songs[0]] = common_songs[1:]
-
 print("creating song_colisten")
 song_colisten = {}
 for user in play_count:
@@ -57,7 +48,7 @@ sorted_diagonal = sorted(sorted_diagonal, key=sorted_diagonal.get)
 print("generating output for each user")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:
-        user_songs = play_count[user]
+        user_songs = copy.deepcopy(play_count[user])
         songs_ignored = list(user_songs.keys())
         colisten_row = {}
         index = 0
@@ -72,7 +63,7 @@ with open("../results/solution.txt", "w") as file:
                             index += 1
                     break
                 recommendation = max(user_songs, key=user_songs.get)
-                colisten_row = song_colisten[recommendation]
+                colisten_row = copy.deepcopy(song_colisten[recommendation])
                 del user_songs[recommendation]
                 for song in songs_ignored:
                     if song in colisten_row:
@@ -80,8 +71,8 @@ with open("../results/solution.txt", "w") as file:
                 continue
             recommendation = max(colisten_row, key=colisten_row.get)
             songs_ignored.append(recommendation)
-            file.write(str(recommendation) + " ")
             del colisten_row[recommendation]
+            file.write(str(recommendation) + " ")
             index += 1
         file.write("\n")
 
