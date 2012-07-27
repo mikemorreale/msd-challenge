@@ -1,4 +1,4 @@
-import copy
+import copy, math
 
 print("storing data in dictionaries")
 with open("../data/kaggle_users.txt", "r") as file:
@@ -49,6 +49,14 @@ print("generating output for each user")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:
         user_songs = copy.deepcopy(play_count[user])
+        user_songs_total = 0
+        for count in user_songs.values():
+            user_songs_total += count
+        user_rankings = []
+        for song in user_songs.keys():
+            user_rankings.append(math.floor(user_songs[song] / user_songs_total * 500))
+        user_rankings[user_rankings.index(max(user_rankings))] += 500 - sum(user_rankings)
+        print(user, user_rankings)
         songs_ignored = list(user_songs.keys())
         colisten_row = {}
         index = 0
