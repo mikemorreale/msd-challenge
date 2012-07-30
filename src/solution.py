@@ -1,4 +1,4 @@
-import copy, math
+import math
 
 print("storing data in dictionaries")
 with open("../data/kaggle_users.txt", "r") as file:
@@ -48,14 +48,17 @@ sorted_diagonal = sorted(sorted_diagonal, key=sorted_diagonal.get)
 print("generating output for each user")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:
-        user_songs = copy.deepcopy(play_count[user])
+        user_songs = dict(play_count[user])
         user_songs_total = 0
         for count in user_songs.values():
             user_songs_total += count
         user_rankings = []
         for song in user_songs.keys():
             user_rankings.append(math.floor(user_songs[song] / user_songs_total * 500))
-        user_rankings[user_rankings.index(max(user_rankings))] += 500 - sum(user_rankings)
+        user_rankings.sort(reverse=True)
+        rankings_remaining = 500 - sum(user_rankings)
+        for i in range(rankings_remaining):
+            user_rankings[i % len(user_rankings)] += 1
         print(user, user_rankings)
         songs_ignored = list(user_songs.keys())
         colisten_row = {}
@@ -71,7 +74,7 @@ with open("../results/solution.txt", "w") as file:
                             index += 1
                     break
                 recommendation = max(user_songs, key=user_songs.get)
-                colisten_row = copy.deepcopy(song_colisten[recommendation])
+                colisten_row = dict(song_colisten[recommendation])
                 del user_songs[recommendation]
                 for song in songs_ignored:
                     if song in colisten_row:
