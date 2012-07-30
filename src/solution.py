@@ -48,43 +48,36 @@ sorted_diagonal = sorted(sorted_diagonal, key=sorted_diagonal.get)
 print("generating output for each user")
 with open("../results/solution.txt", "w") as file:
     for user in play_count:
-        user_songs = dict(play_count[user])
+        user_songs = sorted(play_count[user], key=play_count[user].get, reverse=True)        
         user_songs_total = 0
-        for count in user_songs.values():
+        for count in play_count[user].values():
             user_songs_total += count
+        
         user_rankings = []
-        for song in user_songs.keys():
-            user_rankings.append(math.floor(user_songs[song] / user_songs_total * 500))
+        for song in play_count[user]:
+            user_rankings.append(math.floor(play_count[user][song] / user_songs_total * 500))
         user_rankings.sort(reverse=True)
         rankings_remaining = 500 - sum(user_rankings)
         for i in range(rankings_remaining):
             user_rankings[i % len(user_rankings)] += 1
-        print(user, user_rankings)
-        songs_ignored = list(user_songs.keys())
+        
+        songs_ignored = list(user_songs)        
         colisten_row = {}
-        index = 0
-        while index < 500:
-            if colisten_row == {}:
-                if user_songs == {}:
-                    for song in sorted_diagonal:
-                        if index == 500:
-                            break
-                        elif song not in songs_ignored:
-                            file.write(str(song) + " ")
-                            index += 1
+                
+        for i in range(len(user_songs)):
+            colisten_row = dict(song_colisten[user_songs[i]])
+            for song in songs_ignored:
+                if song in colisten_row:
+                    del colisten_row[song]
+            
+            index = 0
+            while index < user_rankings[i]:
+                if colisten_row == {}:
                     break
-                recommendation = max(user_songs, key=user_songs.get)
-                colisten_row = dict(song_colisten[recommendation])
-                del user_songs[recommendation]
-                for song in songs_ignored:
-                    if song in colisten_row:
-                        del colisten_row[song]
-                continue
-            recommendation = max(colisten_row, key=colisten_row.get)
-            songs_ignored.append(recommendation)
-            del colisten_row[recommendation]
-            file.write(str(recommendation) + " ")
-            index += 1
-        file.write("\n")
+                
+                recommendation = max(colisten_row, key=colisten_row.get)
+                songs_ignored.append(recommendation)
+                del colisten_row[recommendation]
+                index += 1
 
 print("finished")
