@@ -1,7 +1,8 @@
 import math
 from multiprocessing import Process
 
-def generate_solution(start_index, end_index, file,play_count, songs, song_colisten, sorted_diagonal):
+def generate_solution(start_index, end_index, file, play_count, song_colisten, sorted_diagonal):
+    
     print("generating output for each user")
     with open(file, "w") as write_file:
         for user in range(start_index, end_index+1):
@@ -57,7 +58,7 @@ def generate_solution(start_index, end_index, file,play_count, songs, song_colis
     print("finished")
 
 def main():
-    
+
     print("storing data in dictionaries")
     with open("../data/kaggle_users.txt", "r") as file:
         users = {}
@@ -103,10 +104,10 @@ def main():
                 sorted_diagonal[song1] = -song_colisten[song1][song2]
     sorted_diagonal = sorted(sorted_diagonal, key=sorted_diagonal.get)
     
-    p1 = Process(target = generate_solution, args = (1,27500,"../results/solution1.txt", play_count, songs, song_colisten, sorted_diagonal))
-    p2 = Process(target = generate_solution, args = (27501,55000,"../results/solution2.txt", play_count, songs, song_colisten, sorted_diagonal))
-    p3 = Process(target = generate_solution, args = (55001,82500,"../results/solution3.txt", play_count, songs, song_colisten, sorted_diagonal))
-    p4 = Process(target = generate_solution, args = (83501,110000,"../results/solution4.txt", play_count, songs, song_colisten, sorted_diagonal))
+    p1 = Process(target = generate_solution, args = (1,27500,"../results/solution1.txt", play_count, song_colisten, sorted_diagonal))
+    p2 = Process(target = generate_solution, args = (27501,55000,"../results/solution2.txt",play_count, song_colisten, sorted_diagonal))
+    p3 = Process(target = generate_solution, args = (55001,82500,"../results/solution3.txt",play_count, song_colisten, sorted_diagonal))
+    p4 = Process(target = generate_solution, args = (83501,110000,"../results/solution4.txt",play_count, song_colisten, sorted_diagonal))
     
     p1.start()
     p2.start()
