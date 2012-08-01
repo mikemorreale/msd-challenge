@@ -1,3 +1,5 @@
+.project
+.pydevproject
 data/
 results/
 src/__pycache__/
